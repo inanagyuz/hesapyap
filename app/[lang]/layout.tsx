@@ -31,14 +31,14 @@ export default async function RootLayout({
    params,
 }: {
    children: React.ReactNode;
-   params: { lang: Locale };
+   params: Promise<{ lang: Locale }>;
 }) {
    const cookieStore = await cookies();
    const activeThemeValue = cookieStore.get('active_theme')?.value;
    const isScaled = activeThemeValue?.endsWith('-scaled');
    const session = await auth();
-   const { lang: langParam } = await params;
-   const lang = langParam || i18n.defaultLocale;
+   const resolvedParams = await params;
+   const lang = resolvedParams.lang || i18n.defaultLocale;
 
    return (
       <SessionProvider session={session}>
