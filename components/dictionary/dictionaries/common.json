@@ -17,7 +17,14 @@
       "lightMode": "Aydınlık Mod",
       "search": "Arama",
       "searchPlaceholder": "Bir şey arayın...",
-      "searchResults": "Arama Sonuçları"
+      "searchResults": "Arama Sonuçları",
+      "login": "Giriş",
+      "loginDesc": "Giriş yapın veya kaydolun.",
+      "register": "Kayıt Ol",
+      "logout": "Çıkış Yap",
+      "loginMailAndPassword": "E-posta ve Şifre ile Giriş Yap",
+      "email": "E-posta",
+      "password": "Şifre"
    },
    "en": {
       "wellcome": "Willkommen",
@@ -38,7 +45,14 @@
       "search": "Search",
       "searchPlaceholder": "Search for something...",
       "searchResults": "Search Results",
-      "searchResultsDesc": "Here are the results for your search."
+      "searchResultsDesc": "Here are the results for your search.",
+      "login": "Login",
+      "loginDesc": "Login or sign up.",
+      "register": "Register",
+      "logout": "Logout",
+      "loginMailAndPassword": "Login with Email and Password",
+      "email": "Email",
+      "password": "Password"
    },
    "de": {
       "wellcome": "Welcome",
@@ -58,6 +72,14 @@
       "lightMode": "Heller Modus",
       "search": "Suche",
       "searchPlaceholder": "Nach etwas suchen...",
-      "searchResults": "Suchergebnisse"
+      "searchResults": "Suchergebnisse",
+      "searchResultsDesc": "Hier sind die Ergebnisse Ihrer Suche.",
+      "login": "Anmeldung",
+      "loginDesc": "Melden Sie sich an oder registrieren Sie sich.",
+      "register": "Registrieren",
+      "logout": "Abmelden",
+      "loginMailAndPassword": "Mit E-Mail und Passwort anmelden",
+      "email": "E-Mail",
+      "password": "Passwort"
    }
 }

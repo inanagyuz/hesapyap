@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,75 +5,694 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  
 }
 
-// Optional for WebAuthn support
+//////Kullanıcı Bilgileri//////////////////////////////////////////////
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                        String          @id @default(cuid())
+  name                      String?
+  firstName                 String?
+  lastName                  String?
+  bio                       String?
+  email                     String          @unique  
+  emailVerified             DateTime?
+  emailVerifyToken          String?
+  phone                     String?
+  password                  String?
+  passwordResetToken        String?
+  image                     String?
+  address                   String?
+  city                      String?
+  country                   String?
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  role                      UserRole         @default(USER)
+  status                    Boolean          @default(true)
+  statuses                  String?
+  accounts                  Account[]
+  Authenticator             Authenticator[]
+  sessions                  Session[]  
+  agreeToTerms              Boolean         @default(false)
+  createdByPages            Page[]          @relation("CreatedBy")
+  updatedByPages            Page[]          @relation("UpdatedBy") 
+  createdByPosts            Post[]          @relation("CreatedBy")
+  updatedByPosts            Post[]          @relation("UpdatedBy")
+  createdByCategories       PostCategory[]  @relation("CreatedBy")
+  updatedByCategories       PostCategory[]  @relation("UpdatedBy")
+  createdByInformations     Information[]   @relation("CreatedBy")
+  updatedByInformations     Information[]   @relation("UpdatedBy")
+  createdByMenus            Menu[]          @relation("CreatedBy")
+  updatedByMenus            Menu[]          @relation("UpdatedBy")
+  createdByMenuLinks        MenuLink[]      @relation("CreatedBy")
+  updatedByMenuLinks        MenuLink[]      @relation("UpdatedBy")
+  createdByImageGalleries   ImageGallery[]  @relation("CreatedBy")
+  updatedByImageGalleries   ImageGallery[]  @relation("UpdatedBy")
+  createdBySiteSettings     SiteSettings[]  @relation("CreatedBy")
+  updatedBySiteSettings     SiteSettings[]  @relation("UpdatedBy")
+  social                    UserSocial[]
+  // Kullanıcıyı oluşturan kişi
+  createdById               String?  
+  createdBy                 User?           @relation("CreatedBy", fields: [createdById], references: [id])
+  // Kullanıcıyı güncelleyen kişi
+  updatedById               String?  
+  updatedBy                 User?           @relation("UpdatedBy", fields: [updatedById], references: [id])
+  // Bir kullanıcının oluşturduğu diğer kullanıcılar
+  createdUsers              User[]          @relation("CreatedBy")
+  updatedUsers              User[]          @relation("UpdatedBy")
+  createdByPostCategory     PageCategory[]  @relation("CreatedBy")
+  updatedByPostCategory     PageCategory[]  @relation("UpdatedBy")
+  userBudget                Budget[]        @relation("UserBudget")
+  createdByBudgetAccountType BudgetAccountType[]  @relation("CreatedBy")
+  updatedByBudgetAccountType BudgetAccountType[]  @relation("UpdatedBy")
+  budgetAccount             BudgetAccount[]  @relation("UserBudget")
+  createdByCurrency         Currency[]      @relation("CreatedBy")
+  updatedByCurrency         Currency[]      @relation("UpdatedBy")
+  createdByBudgetCategory   BudgetCategory[]  @relation("CreatedBy")
+  updatedByBudgetCategory   BudgetCategory[]  @relation("UpdatedBy")
+  budgetTransaction         BudgetTransaction[]  @relation("UserBudget")
+  credit                    Credit[]        @relation("UserBudget")
+  createdByCreditType       CreditType[]    @relation("CreatedBy")
+  updatedByCreditType       CreditType[]    @relation("UpdatedBy")
+  createdByBank             Bank[]          @relation("CreatedBy")
+  updatedByBank             Bank[]          @relation("UpdatedBy")
+  creditInstallment         CreditInstallment[]  @relation("CreditInstallment")
+   
 }
- 
+
+
+//////Kullanıcı Hesapları//////////////////////////////////////////////
 model Account {
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  userId                    String
+  type                      String
+  provider                  String
+  providerAccountId         String
+  refresh_token             String?
+  access_token              String?
+  expires_at                Int?
+  token_type                String?
+  scope                     String?
+  id_token                  String?
+  session_state             String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@id([provider, providerAccountId])
 }
- 
+
+//////Kullanıcı Oturumları//////////////////////////////////////////////
 model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sessionToken              String          @unique
+  userId                    String                     
+  expires                   DateTime                     
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
- 
+
+//////Kullanıcı Doğrulama Tokeni//////////////////////////////////////////////
 model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
- 
+  identifier                String
+  token                     String
+  expires                   DateTime
   @@id([identifier, token])
 }
- 
-// Optional for WebAuthn support
+
+//////Kullanıcı Kimlik Doğrulama//////////////////////////////////////////////
 model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+  credentialID              String          @unique
+  userId                    String               
+  providerAccountId         String               
+  credentialPublicKey       String               
+  counter                   Int                
+  credentialDeviceType      String               
+  credentialBackedUp        Boolean                
+  transports                String?                
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([userId, credentialID])
 }
+
+//////Kullanıcı Sosyal Medya Bilgileri//////////////////////////////////////////////
+model UserSocial {  
+  userId                    String          @unique
+  user                      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facebook                  String?
+  twitter                   String?
+  instagram                 String?
+  linkedin                  String?
+  youtube                   String?
+  github                    String?
+  gitlab                    String?
+  pinterest                 String?
+  reddit                    String?
+  telegram                  String?
+  whatsapp                  String?
+  tiktok                    String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+     
+} 
+
+//////Kullanıcı Roller//////////////////////////////////////////////
+enum UserRole {
+  ADMIN
+  PUBLISHER
+  USER
+  VISITOR
+  GUEST
+}
+
+//////Site Ayarları//////////////////////////////////////////////
+model SiteSettings {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  tagline                     String
+  taglineen                   String
+  taglinede                   String
+  description                 String
+  descriptionen               String
+  descriptionde               String
+  keywords                    String
+  keywordsen                  String
+  keywordsde                  String
+  logo                        String
+  favicon                     String
+  theme                       String
+  siteUrl                     String
+  siteLang                    String
+  siteAuthor                  String
+  siteEmail                   String
+  sitePhone                   String  
+  address                     String
+  addressen                   String
+  addressde                   String
+  city                        String  
+  country                     String  
+  state                       String
+  district                    String
+  neighborhood                String
+  street                      String
+  building                    String
+  apartment                   Int           @default(0)
+  floor                       Int           @default(0)
+  zipCode                     String
+  facebook                    String
+  twitter                     String
+  instagram                   String
+  linkedin                    String
+  youtube                     String
+  github                      String
+  gitlab                      String
+  pinterest                   String
+  reddit                      String
+  telegram                    String
+  whatsapp                    String
+  tiktok                      String 
+  maintenance                 Boolean  
+  maintenanceTitle            String
+  maintenanceTitleen          String      
+  maintenanceTitlede          String      
+  maintenanceDesc             String
+  maintenanceDescen           String      
+  maintenanceDescde           String      
+  maintenanceAuthor           String
+  maintenanceLang             String
+  maintenanceTheme            String
+  maintenanceLogo             String  
+  maintenanceEmail            String
+  maintenancePhone            String  
+  rSiteKey                    String
+  rSecretKey                  String
+  gAnalytics                  String?
+  gSearchConsole              String?
+  adsense                     String?
+  tagManager                  String?
+  reCAPTCHAKeyId              String
+  yVerification               String
+  bVerification               String
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id]) 
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+}
+
+///////  Menüler /////////////////////////////
+model Menu {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String 
+  url                         String
+  icon                        String
+  location                    String?       
+  parent                      Menu?         @relation("ParentMenu", fields: [parentId], references: [id])
+  parentId                    String?   
+  children                    Menu[]        @relation("ParentMenu")
+  order                       Int           @default(0)
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  menuLinks                   MenuLink[]
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?       
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])
+  updatedUserId               String?
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+}
+
+///////  Menü Linkleri /////////////////////////////
+model MenuLink {
+  id                          String        @id @default(cuid())
+  title                       String    
+  titleen                     String    
+  titlede                     String    
+  desc                        String    
+  descen                      String    
+  descde                      String      
+  url                         String        @default("")
+  urlen                       String        @default("")
+  urlde                       String        @default("")
+  icon                        String    
+  parent                      MenuLink?     @relation("ParentMenuLink", fields: [parentId], references: [id])
+  parentId                    String?   
+  children                    MenuLink[]    @relation("ParentMenuLink")
+  order                       Int           @default(0)
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  menu                        Menu?         @relation(fields: [menuId], references: [id])
+  menuId                      String?
+  pageUrl                     Page?         @relation(fields: [pageUrlId], references: [id])
+  pageUrlId                   String?    
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])
+  updatedUserId               String?  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+}
+
+///////  Sayfalar /////////////////////////////
+model PageCategory {
+  id                          String        @id @default(cuid())
+  title                       String      
+  titleen                     String      
+  titlede                     String      
+  desc                        String      
+  descen                      String      
+  descde                      String      
+  images                      String[]
+  status                      Boolean        @default(true)
+  access                      UserRole[]     @default([])
+  page                        Page[]
+  createdById                 String?
+  createdBy                   User?          @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?          @relation("UpdatedBy", fields: [updatedById], references: [id])    
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt  
+}
+model Page {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String
+  slug                        String        @unique
+  slugen                      String        @unique
+  slugde                      String        @unique
+  content                     Json
+  contenten                   Json
+  contentde                   Json
+  keywords                    String
+  keywordsen                  String
+  keywordsde                  String
+  views                       Int           @default(0)
+  images                      String[]
+  categoryId                  String?
+  category                    PageCategory? @relation( fields: [categoryId], references: [id])
+  component                   String?
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])  
+  MenuLink                    MenuLink[]
+  information                 Information?  @relation(fields: [informationId], references: [id])
+  informationId               String?
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  createdView                 Boolean       @default(true)
+  updatedView                 Boolean       @default(true)
+  authorView                  Boolean       @default(true)
+  viewsView                   Boolean       @default(true)
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+}
+
+
+
+///////Image Gallery////////////////////////////
+model ImageGallery {
+  id                          String        @id @default(cuid())
+  name                        String 
+  url                         String  
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])   
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+}
+
+//// Kateqoriler /////////////////////////////
+model PostCategory {
+  id                          String        @id @default(cuid())
+  name                        String      
+  nameen                      String      
+  namede                      String      
+  desc                        String      
+  descen                      String      
+  descde                      String      
+  slug                        String         @unique
+  slugen                      String         @unique
+  slugde                      String         @unique
+  keywords                    String      
+  keywordsen                  String      
+  keywordsde                  String      
+  views                       Int            @default(0)
+  images                      String[]
+  status                      Boolean        @default(true)
+  access                      UserRole[]     @default([])
+  createdById                 String?
+  createdBy                   User?          @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?          @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  post                        Post[]
+  parent                      PostCategory?  @relation("ParentCategory", fields: [parentId], references: [id])
+  children                    PostCategory[] @relation("ParentCategory")
+  parentId                    String?
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
+}
+
+/////// Postlar /////////////////////////////
+model Post {
+  id                          String        @id @default(cuid())
+  title                       String  
+  titleen                     String  
+  titlede                     String  
+  desc                        String  
+  descen                      String  
+  descde                      String  
+  slug                        String        @unique
+  slugen                      String        @unique
+  slugde                      String        @unique
+  content                     Json  
+  contenten                   Json  
+  contentde                   Json  
+  keywords                    String  
+  keywordsen                  String  
+  keywordsde                  String  
+  views                       Int           @default(0)
+  images                       String[]  
+  component                   String? 
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])
+  category                    PostCategory? @relation(fields: [categoryId], references: [id])
+  categoryId                  String? 
+  information                 Information?  @relation(fields: [informationId], references: [id])
+  informationId               String?   
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt   
+  createdView                 Boolean       @default(false)
+  updatedView                 Boolean       @default(false)
+  authorView                  Boolean       @default(false)
+  viewsView                   Boolean       @default(false)
+} 
+
+///////  Bilgilendirme /////////////////////////////
+model Information {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String  
+  content                     Json
+  contenten                   Json
+  contentde                   Json 
+  views                       Int           @default(0)
+  images                       String[] 
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])  
+  post                        Post[]
+  page                        Page[]   
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt  
+}
+
+///////  Bütçe /////////////////////////////
+model Budget {
+  id                          String        @id @default(cuid())
+  title                       String  
+  desc                        String
+  icon                        String
+  currencyId                  String
+  currency                    Currency      @relation(fields: [currencyId], references: [id])
+  status                      Boolean       @default(true)
+  userId                      String        
+  user                        User          @relation("UserBudget",fields: [userId], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  budgetAccount               BudgetAccount[]
+ }
+
+/////// Bütçe Hesap Türü /////////////////////////////
+model BudgetAccountType {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String
+  icon                        String
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  budgetAccount               BudgetAccount[] 
+}
+
+//// Para Birimleri /////////////////////////////
+model Currency {
+  id                          String        @id @default(cuid())
+  name                        String
+  nameen                      String
+  namede                      String
+  code                        String
+  symbol                      String
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  budgetAccount               BudgetAccount[] 
+  budgetTransaction           BudgetTransaction[]
+  credit                      Credit[]
+  budget                      Budget[]
+}
+
+///////  Bütçe Hesapları /////////////////////////////
+model BudgetAccount {
+  id                          String        @id @default(cuid())
+  title                       String  
+  desc                        String  
+  balance                     Float
+  icon                        String
+  currencyId                  String
+  currency                    Currency      @relation(fields: [currencyId], references: [id]) 
+  status                      Boolean       @default(true)  
+  userId                      String        
+  user                        User          @relation("UserBudget",fields: [userId], references: [id])
+  budgetId                    String        
+  budget                      Budget        @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  accountTypeId               String        
+  accountType                 BudgetAccountType @relation(fields: [accountTypeId], references: [id])  
+  budgetTransaction           BudgetTransaction[] @relation("budgetAccount")
+  budgetTransaction2          BudgetTransaction[] @relation("budgetAccount2")
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+}
+
+/////// Gelir Gider Kateqorileri /////////////////////////////
+model BudgetCategory {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String
+  categoryType                String        @default("INCOME")
+  icon                        String
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  budgetTransaction           BudgetTransaction[]
+}
+
+/////// Gelir Gider Hesabları /////////////////////////////
+model BudgetTransaction {
+  id                          String        @id @default(cuid())
+  desc                        String  
+  amount                      Float
+  transactionDate             DateTime      @default(now())
+  transactionType             String?
+  icon                        String?
+  currencyId                  String
+  parentTransactionId         String?
+  parentTransaction           BudgetTransaction? @relation("parentTransaction", fields: [parentTransactionId], references: [id])
+  currency                    Currency      @relation(fields: [currencyId], references: [id]) 
+  status                      Boolean       @default(true)
+  userId                      String        
+  user                        User          @relation("UserBudget",fields: [userId], references: [id])
+  categoryId                  String        
+  category                    BudgetCategory @relation(fields: [categoryId], references: [id])
+  budgetAccountId             String
+  budgetAccount               BudgetAccount @relation( "budgetAccount", fields: [budgetAccountId], references: [id])
+  budgetAccountId2            String?
+  budgetAccount2              BudgetAccount? @relation( "budgetAccount2", fields: [budgetAccountId2], references: [id])
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  budgetTransaction BudgetTransaction[] @relation("parentTransaction")
+}
+
+/////// Bankalar /////////////////////////////
+model Bank {
+  id                          String        @id @default(cuid())
+  name                        String
+  nameen                      String
+  namede                      String
+  desc                        String
+  descen                      String
+  descde                      String
+  image                       String?
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  credit                      Credit[]
+  icon                        String?
+  url                         String?
+}
+
+////  Kredi Türleri /////////////////////////////
+model CreditType {
+  id                          String        @id @default(cuid())
+  title                       String
+  titleen                     String
+  titlede                     String
+  desc                        String
+  descen                      String
+  descde                      String
+  icon                        String
+  status                      Boolean       @default(true)
+  access                      UserRole[]    @default([])
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  credit                      Credit[]
+}
+
+//////// Krediler /////////////////////////////
+model Credit {
+  id                          String        @id @default(cuid())
+  title                       String
+  desc                        String  
+  interestRate                Float
+  principalAmount             Float
+  installmentCount            Int
+  installmentAmount           Float
+  otherCost                   Float         @default(0)
+  costAmount                  Float
+  totalAmount                 Float
+  currencyId                  String
+  currency                    Currency      @relation(fields: [currencyId], references: [id]) 
+  status                      Boolean       @default(true)  
+  userId                      String        
+  user                        User          @relation("UserBudget",fields: [userId], references: [id])  
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  creditType                  CreditType?   @relation(fields: [creditTypeId], references: [id])
+  creditTypeId                String?
+  creditInstallment           CreditInstallment[]
+  icon                        String
+  bankId                      String
+  bank                        Bank          @relation(fields: [bankId], references: [id])
+  startDate                   DateTime
+  endDate                     DateTime
+}
+
+////// Kredi Taksitleri /////////////////////////////
+model CreditInstallment {
+  id                          String        @id @default(cuid())
+  creditId                    String
+  credit                      Credit        @relation(fields: [creditId], references: [id], onDelete: Cascade) 
+  installmentDate             DateTime 
+  installmentStatus           String
+  status                      Boolean       @default(true)
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  icon                        String?
+  interestAmount              Float  
+  principalAmount             Float 
+  KKDFAmount                  Float
+  BSMVAmount                  Float
+  totalAmount                 Float
+  userId                      String
+  user                        User          @relation("CreditInstallment",fields: [userId], references: [id])
+}
+
+
+
+
