@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import React from 'react';
-
+import { createBearerToken } from '@/lib/bearerToken';
 import { toast } from 'sonner';
 import { loginSchema, LoginSchema } from '@/schemas/userSchema';
 import { useForm } from 'react-hook-form';
@@ -21,25 +21,6 @@ import { Dictionary, dictionary } from '@/components/dictionary/getDictionary';
 import { Separator } from '@/components/ui/separator';
 import { LoginGithub, LoginGoogle } from './auth-button';
 import { Locale } from '../dictionary/Locale';
-
-export function SeparatorDemo() {
-   return (
-      <div>
-         <div className="space-y-1">
-            <h4 className="text-sm font-medium leading-none">Radix Primitives</h4>
-            <p className="text-sm text-muted-foreground">An open-source UI component library.</p>
-         </div>
-         <Separator className="my-4" />
-         <div className="flex h-5 items-center space-x-4 text-sm">
-            <div>Blog</div>
-            <Separator orientation="vertical" />
-            <div>Docs</div>
-            <Separator orientation="vertical" />
-            <div>Source</div>
-         </div>
-      </div>
-   );
-}
 
 export function LoginForm() {
    const [dicSchema, setDicSchema] = React.useState<Dictionary<'schemaBase'>>();
@@ -70,14 +51,17 @@ export function LoginForm() {
    });
 
    async function onSubmit(data: LoginSchema) {
+      const bearerToken = await createBearerToken();
+      const headers = new Headers();
+      headers.append('Authorization', bearerToken); // Bearer token ekleme
+      headers.append('Content-Type', 'application/json'); // JSON içeriği belirtme
+
       const loadingToast = toast.loading(dicUser?.loginLoading);
       try {
          const res = await fetch('/api/signIn', {
             method: 'POST',
-            headers: {
-               'Content-Type': 'application/json',
-            },
             body: JSON.stringify(data),
+            headers: headers,
          });
 
          const contentType = res.headers.get('content-type');

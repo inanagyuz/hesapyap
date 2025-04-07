@@ -2,54 +2,104 @@ import { z } from 'zod';
 
 import { ZodIssueCode } from 'zod';
 import { Dictionary } from '@/components/dictionary/getDictionary';
-import { schemaBase } from './schemaBase';
+import { schemaBase, role, emailRegex, phoneRegex, statuses } from './schemaBase';
 
 ////// userSchema ////////
 export const userSchema = (dic?: Dictionary<'schemaBase'>) => {
-   return schemaBase(dic).pick({
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      firstName: true,
-      lastName: true,
-      bio: true,
-      password: true,
-      confirmPassword: true,
-      oldPassword: true,
-      emailVerified: true,
-      image: true,
-      address: true,
-      city: true,
-      country: true,
-      role: true,
-      status: true,
-      statuses: true,
-      facebook: true,
-      twitter: true,
-      instagram: true,
-      linkedin: true,
-      youtube: true,
-      github: true,
-      gitlab: true,
-      pinterest: true,
-      reddit: true,
-      telegram: true,
-      whatsapp: true,
-      tiktok: true,
-      createdAt: true,
-      updatedAt: true,
-      agreeToTerms: true,
-      createdById: true,
-      updatedById: true,
-      social: true,
+   return z.object({
+      id: z.string().optional(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+      bio: z.string().optional(),
+      email: z
+         .union([z.string().regex(emailRegex, { message: dic?.isEmail }), z.literal('')])
+         .optional(),
+      phone: z.union([z.string().regex(phoneRegex, { message: dic?.phoneError }), z.literal('')]),
+      password: z.union([
+         z
+            .string()
+            .min(6, { message: dic?.minLengthPassword })
+            .max(24, { message: dic?.maxLengthPassword }),
+         z.literal(''),
+      ]),
+      confirmPassword: z.union([
+         z
+            .string()
+            .min(6, { message: dic?.minLengthPassword })
+            .max(24, { message: dic?.maxLengthPassword }),
+         z.literal(''),
+      ]),
+      status: z
+         .boolean({
+            invalid_type_error: dic ? dic?.isBoolean : '',
+         })
+         .optional(),
+      statuses: statuses.optional().nullable(),
+      access: z.array(role).default([]),
+      oldPassword: z.string(),
+      emailVerified: z.date().optional(),
+      address: z.string().optional(),
+      city: z.string().optional(),
+      country: z.string().optional(),
+      role: role.optional(),
+      agreeToTerms: z.boolean().optional(),
+      facebook: z.union([z.string().url({ message: dic?.facebookUrlError }), z.literal('')]),
+      twitter: z.union([z.string().url({ message: dic?.twitterUrlError }), z.literal('')]),
+      instagram: z.union([z.string().url({ message: dic?.instagramUrlError }), z.literal('')]),
+      linkedin: z.union([z.string().url({ message: dic?.linkedinUrlError }), z.literal('')]),
+      youtube: z.union([z.string().url({ message: dic?.youtubeUrlError }), z.literal('')]),
+      github: z.union([z.string().url({ message: dic?.githubUrlError }), z.literal('')]),
+      gitlab: z.union([z.string().url({ message: dic?.gitlabUrlError }), z.literal('')]),
+      pinterest: z.union([z.string().url({ message: dic?.pinterestUrlError }), z.literal('')]),
+      reddit: z.union([z.string().url({ message: dic?.redditUrlError }), z.literal('')]),
+      telegram: z.union([z.string().url({ message: dic?.telegramUrlError }), z.literal('')]),
+      whatsapp: z.union([z.string().url({ message: dic?.whatsappUrlError }), z.literal('')]),
+      tiktok: z.union([z.string().url({ message: dic?.tiktokUrlError }), z.literal('')]),
    });
+   // return schemaBase(dic).pick({
+   //    id: true,
+   //    name: true,
+   //    email: true,
+   //    phone: true,
+   //    firstName: true,
+   //    lastName: true,
+   //    bio: true,
+   //    password: true,
+   //    confirmPassword: true,
+   //    oldPassword: true,
+   //    emailVerified: true,
+   //    image: true,
+   //    address: true,
+   //    city: true,
+   //    country: true,
+   //    role: true,
+   //    status: true,
+   //    statuses: true,
+   //    facebook: true,
+   //    twitter: true,
+   //    instagram: true,
+   //    linkedin: true,
+   //    youtube: true,
+   //    github: true,
+   //    gitlab: true,
+   //    pinterest: true,
+   //    reddit: true,
+   //    telegram: true,
+   //    whatsapp: true,
+   //    tiktok: true,
+   //    createdAt: true,
+   //    updatedAt: true,
+   //    agreeToTerms: true,
+   //    createdById: true,
+   //    updatedById: true,
+   //    social: true,
+   // });
 };
 export type UserSchema = z.infer<ReturnType<typeof userSchema>>;
 
 // Social media update schema
 export const socialMediaUpdateSchema = (dic?: Dictionary<'schemaBase'>) => {
-   return schemaBase(dic).pick({
+   return userSchema(dic).pick({
       facebook: true,
       twitter: true,
       instagram: true,
@@ -68,7 +118,7 @@ export type SocialMediaUpdateSchema = z.infer<ReturnType<typeof socialMediaUpdat
 
 ///////// addUserSchema //////////
 export const addUserSchema = (dic?: Dictionary<'schemaBase'>) => {
-   return schemaBase(dic)
+   return userSchema(dic)
       .pick({
          id: true,
          email: true,
@@ -190,7 +240,7 @@ export type UpdateUserSchema = z.infer<ReturnType<typeof updateUserSchema>>;
 
 /////// Login şeması ////////
 export const loginSchema = (dic?: Dictionary<'schemaBase'>) => {
-   return schemaBase(dic)
+   return userSchema(dic)
       .pick({
          email: true,
          password: true,

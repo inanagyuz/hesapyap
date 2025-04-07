@@ -8,6 +8,9 @@ datasource db {
   
 }
 
+
+
+
 //////Kullanıcı Bilgileri//////////////////////////////////////////////
 model User {
   id                        String          @id @default(cuid())
@@ -65,19 +68,20 @@ model User {
   userBudget                Budget[]        @relation("UserBudget")
   createdByBudgetAccountType BudgetAccountType[]  @relation("CreatedBy")
   updatedByBudgetAccountType BudgetAccountType[]  @relation("UpdatedBy")
-  budgetAccount             BudgetAccount[]  @relation("UserBudget")
-  createdByCurrency         Currency[]      @relation("CreatedBy")
-  updatedByCurrency         Currency[]      @relation("UpdatedBy")
-  createdByBudgetCategory   BudgetCategory[]  @relation("CreatedBy")
-  updatedByBudgetCategory   BudgetCategory[]  @relation("UpdatedBy")
-  budgetTransaction         BudgetTransaction[]  @relation("UserBudget")
-  credit                    Credit[]        @relation("UserBudget")
-  createdByCreditType       CreditType[]    @relation("CreatedBy")
-  updatedByCreditType       CreditType[]    @relation("UpdatedBy")
-  createdByBank             Bank[]          @relation("CreatedBy")
-  updatedByBank             Bank[]          @relation("UpdatedBy")
-  creditInstallment         CreditInstallment[]  @relation("CreditInstallment")
-   
+  budgetAccount               BudgetAccount[]  @relation("UserBudget")
+  createdByCurrency           Currency[]      @relation("CreatedBy")
+  updatedByCurrency           Currency[]      @relation("UpdatedBy")
+  createdByBudgetCategory     BudgetCategory[]  @relation("CreatedBy")
+  updatedByBudgetCategory     BudgetCategory[]  @relation("UpdatedBy")
+  budgetTransaction           BudgetTransaction[]  @relation("UserBudget")
+  credit                      Credit[]        @relation("UserBudget")
+  createdByCreditType         CreditType[]    @relation("CreatedBy")
+  updatedByCreditType         CreditType[]    @relation("UpdatedBy")
+  createdByBank               Bank[]          @relation("CreatedBy")
+  updatedByBank               Bank[]          @relation("UpdatedBy")
+  creditInstallment           CreditInstallment[]  @relation("CreditInstallment")
+  createdTranslation          Translation[]   @relation("CreatedBy")  
+  updatedTranslation          Translation[]   @relation("UpdatedBy")   
 }
 
 
@@ -161,6 +165,24 @@ enum UserRole {
   USER
   VISITOR
   GUEST
+}
+
+/// Çeviri veri tabanı
+
+model Translation {
+  id                          String        @id @default(cuid())
+  key                         String
+  value                       String
+  lang                        String
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  createdById                 String?
+  createdBy                   User?         @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedById                 String?
+  updatedBy                   User?         @relation("UpdatedBy", fields: [updatedById], references: [id])
+  @@unique([key, lang])
+  @@index([key])
+  @@index([lang])
 }
 
 //////Site Ayarları//////////////////////////////////////////////

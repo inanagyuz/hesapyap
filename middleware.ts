@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import authConfig from './auth.config';
 import NextAuth from 'next-auth';
-import { i18n, getLocale } from '@/components/dictionary/getDictionary';
+import { i18n } from '@/components/dictionary/getDictionary';
 
 // Use only one of the two middleware options below
 // 1. Use middleware directly
@@ -48,14 +48,44 @@ const isPublicFile = (path: string) =>
  * Eğer path,  dil kontolu yaparken belirtilen dillerden biri ile başlamıyorsa
  * False döner ve api erişim kontrolü yapılır
  */
-const lang = i18n.locales;
-const isLocaleMissing = (path: string) =>
-   lang.every((locale) => !path.startsWith(`/${locale}/`) && path !== `/${locale}`);
+const isLocaleMissing = (lang: string) => {
+   return i18n.locales.some((locale) => locale === lang);
+};
+
+/*
+ * ************************************ Erişim Kontrolü **********************************
+ * Erişim kontrolü
+ */
+
+const protectedRoutes = ['dashboard', 'admin'];
+const adminRoutes = ['dashboard', 'admin'];
+const userRoutes = ['dashboard'];
+
+export const roleAccess = (role: string, path: string) => {
+   if (role === 'ADMIN') return adminRoutes.includes(path);
+   if (role === 'USER') return userRoutes.includes(path);
+   return false;
+};
+
+/*
+ * ************************************ Middleware **********************************
+ * Middleware
+ * Middleware, Next.js uygulamanızda gelen istekleri işlemek için kullanılan bir işlevdir.
+ * Middleware, istekleri yönlendirmek, kimlik doğrulama yapmak, hata ayıklamak ve daha fazlası için kullanılabilir.
+ * Middleware, isteklerinizi işlemek için bir dizi işlevi zincirleme olarak kullanmanıza olanak tanır.
+ */
 
 export default auth(async function middleware(req: NextRequest) {
    const path = req.nextUrl.pathname;
-   const defaultLang = i18n.defaultLocale;
-   const locale = getLocale(req);
+   const lang = path.split('/')[1];
+   const slug = path.split('/')[2];
+   const defaultLocale = i18n.defaultLocale; // Varsayılan dil
+   const session = await auth(); // Oturum bilgilerini al
+   const role = session?.user?.role; // Kullanıcı rolünü al
+
+   // Eğer path,  api ile başlıyorsa ve _next ile başlamıyorsa
+   // Erişim kontrolü yapmaz
+   if (path.startsWith('/api') || isPublicFile(path)) return NextResponse.next();
 
    /*
     * Dil kontrolü
@@ -66,16 +96,23 @@ export default auth(async function middleware(req: NextRequest) {
     * ile başlamıyorsa api erişim kontrolü yapar
     */
 
-   if (!path.startsWith('/api') && isLocaleMissing(path)) {
-      // Public ve _next  dosyaları için devam et
-      if (isPublicFile(path) || path.startsWith('/_next')) {
-         return NextResponse.next(); // Public dosyalar için devam et
-      }
-
+   if (!isLocaleMissing(lang) || !lang) {
       // Dil kontrolü yapar ve dil yoksa varsayılan dile yönlendirir
       return NextResponse.redirect(
-         new URL(`/${locale}${path.startsWith('/') ? '' : '/'}${path}`, req.url)
+         new URL(`/${defaultLocale}${path.startsWith('/') ? '' : '/'}`, req.url)
       );
+   }
+
+   // Eğer path,  public dosyalar ile başlıyorsa
+   if (protectedRoutes.includes(path)) {
+      if (!role) {
+         // Eğer kullanıcı oturum açmamışsa
+         return NextResponse.redirect(new URL(`/${lang}/signIn`, req.url));
+      }
+      const access = roleAccess(role, slug);
+      if (!access) {
+         return NextResponse.redirect(new URL(`/${lang}/403`, req.url));
+      }
    }
 
    return NextResponse.next();

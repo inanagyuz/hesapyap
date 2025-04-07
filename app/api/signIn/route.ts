@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { signIn } from '@/auth';
 import prisma from '@/lib/prisma';
 import { verifyPassword } from '@/lib/helper';
+import { verifyBearerToken } from '@/lib/bearerToken';
+
+export async function GET(req: NextRequest) {
+   // Tarayıcıdan gelen GET isteği için yönlendirme yap
+   return NextResponse.redirect(new URL('/', req.url));
+}
 
 export async function POST(req: NextRequest) {
+   const bearerToken = req.headers.get('Authorization') || '';
+   const isValidToken = await verifyBearerToken(bearerToken);
+   if (!isValidToken) return NextResponse.json({ status: 401 });
+
    try {
       const { email, password } = await req.json();
 

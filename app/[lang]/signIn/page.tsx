@@ -1,9 +1,10 @@
 import { dictionary, Locale, i18n, Dictionary } from '@/components/dictionary/getDictionary';
-
+import { auth } from '@/auth';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import LocaleSwitcher from '@/components/dictionary/LocaleSwitcher';
+import { redirect } from 'next/navigation';
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: Locale }> }) {
    const { lang } = await params;
@@ -21,6 +22,11 @@ type Quote = {
 };
 
 export default async function SignIn() {
+   const session = await auth();
+   if (session) {
+      return redirect('/');
+   }
+
    let quote: Quote = {
       body: '',
       author: '',
